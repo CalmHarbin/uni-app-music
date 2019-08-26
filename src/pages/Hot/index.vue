@@ -24,16 +24,16 @@
                                 .map(i => {
                                     return i.name;
                                 })
-                                .join(" / ") + 
-                                ' - ' + 
+                                .join(" / ") +
+                                " - " +
                                 item.al.name
                         }}
                     </Text>
                 </View>
-                <View class="right" @lick="play(item)">
+                <View class="right" @click="play(item)">
                     <Image
                         :src="
-                            !paused && item.id == audioId
+                            !$store.state.audio.paused && item.id == audioId
                                 ? require('../../static/pause-item.png')
                                 : require('../../static/play-list.png')
                         "
@@ -77,12 +77,13 @@ export default {
         go(item) {
             //如歌没有播放歌曲 或者 播放的不是当前歌曲,则播放当前歌曲
             if (
-                !this.props.global.song ||
-                this.props.global.song.id !== item.id
+                !this.$store.state.song ||
+                this.$store.state.song.id !== item.id
             ) {
-                this.props.dispatch(
-                    setGlobalData({ key: "song", value: item })
-                );
+                this.$store.dispatch("setGlobalData", {
+                    key: "song",
+                    value: item
+                });
             }
             //改变播放列表
             this.insert_list(item);
@@ -96,13 +97,13 @@ export default {
          * @param {Object} item 当前歌曲的详细信息
          * @return {undefined}
          */
-        play(item, e) {
+        play(item) {
             //获取播放器
-            let audio = this.props.global.audio;
+            let audio = this.$store.state.audio;
             //如果点击的是当前歌曲,则仅改变播放状态
             if (
-                this.props.global.song &&
-                this.props.global.song.id === item.id
+                this.$store.state.song &&
+                this.$store.state.song.id === item.id
             ) {
                 if (audio.paused) {
                     audio.play();
@@ -110,25 +111,24 @@ export default {
                     audio.pause();
                 }
                 //更新歌曲的全局变量
-                this.props.dispatch(
-                    setGlobalData({ key: "audio", value: audio })
-                );
+                this.$store.dispatch("setGlobalData", {
+                    key: "audio",
+                    value: audio
+                });
                 return;
             }
             //更新歌曲的全局变量
-            this.props.dispatch(setGlobalData({ key: "song", value: item }));
+            this.$store.dispatch("setGlobalData", { key: "song", value: item });
 
             //获取当前播放的歌曲
-            let song = this.props.global.song;
+            let song = this.$store.state.song;
             //改变播放列表
             this.insert_list(song);
 
             //更新播放为当前歌曲
-            this.props.dispatch(update({ item }));
+            this.$store.dispatch("update", { item });
             //更新歌词
-            this.props.dispatch(updateLyric({ id: item.id }));
-
-            e.stopPropagation();
+            this.$store.dispatch("updateLyric", { id: item.id });
         },
 
         /**
@@ -138,11 +138,12 @@ export default {
          */
         insert_list() {
             // 将热歌全部添加到播放列表里面
-            this.props.dispatch(
-                setGlobalData({ key: "songList", value: this.state.hotList })
-            );
+            this.$store.dispatch("setGlobalData", {
+                key: "songList",
+                value: this.hotList
+            });
             //播放模式切换为顺序播放
-            this.props.dispatch(setGlobalData({ key: "mode", value: 2 }));
+            this.$store.dispatch("setGlobalData", { key: "mode", value: 2 });
         }
     }
 };
@@ -153,105 +154,105 @@ export default {
     position: relative;
     background: url(//s3.music.126.net/mobile-new/img/hot_music_bg_2x.jpg?f01a252…=)
         no-repeat;
-    background-size: contain;
-    height: 146Px;
+    background-size: cover;
+    height: 146px;
     display: flex;
     justify-content: center;
     flex-direction: column;
-    padding-left: 15Px;
+    padding-left: 15px;
 
     .cover {
         background: url(//s3.music.126.net/mobile-new/img/index_icon_2x.png?5207a28…=)
             no-repeat;
-        background-size: 166Px 97Px;
-        width: 142Px;
-        height: 67Px;
-        background-position: -24Px -30Px;
+        background-size: 166px 97px;
+        width: 142px;
+        height: 67px;
+        background-position: -24px -30px;
     }
 
     .time {
         color: hsla(0, 0%, 100%, 0.8);
-        font-size: 12Px;
+        font-size: 12px;
         transform: scale(0.91);
         transform-origin: left top;
-        margin-top: 10Px;
+        margin-top: 10px;
     }
 }
 
-.SongList{
-    .header{
+.SongList {
+    .header {
         display: flex;
-        border-radius: 13Px 13Px 0 0;
-        height: 45Px;
-        line-height: 45Px;
+        border-radius: 13px 13px 0 0;
+        height: 45px;
+        line-height: 45px;
         background-color: #fff;
-        align-items:center;
+        align-items: center;
         font-size: 30rpx;
-        border-bottom: 1Px solid #eee;
+        border-bottom: 1px solid #eee;
         overflow: hidden;
-        Image{
-            width: 20Px;
-            height: 20Px;
-            margin-right: 15Px;
-            margin-left: 15Px;
+        image {
+            width: 20px;
+            height: 20px;
+            margin-right: 15px;
+            margin-left: 15px;
         }
-        .left{
+        .left {
             margin-right: auto;
             color: #333;
-            Text{
+            Text {
                 color: #999;
             }
         }
-        .right{
+        .right {
             height: 100%;
-            padding: 0 8Px;
+            padding: 0 8px;
             background-color: red;
             color: #fff;
             text-align: center;
-            min-width: 110Px;
+            min-width: 110px;
         }
     }
-    .item{
+    .item {
         display: flex;
         align-items: center;
-        padding-left: 20Px;
+        padding-left: 20px;
         font-size: 30rpx;
         color: #333;
-        height: 50Px;
-        .left{
-            margin-right: 20Px;
+        height: 50px;
+        .left {
+            margin-right: 20px;
             color: #888;
         }
-        .box{
+        .box {
             flex: 1;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            border-bottom: 1Px solid #eee;
-            padding-right: 15Px;
+            border-bottom: 1px solid #eee;
+            padding-right: 15px;
             height: 100%;
-            overflow:hidden;
-            .middle{
+            overflow: hidden;
+            .middle {
                 display: flex;
                 flex-direction: column;
-                flex:0 0 90%;
-                overflow:hidden;
-                text{
+                flex: 0 0 90%;
+                overflow: hidden;
+                text {
                     font-size: 24rpx;
                     color: #888;
-                    margin-top: 1Px;
+                    margin-top: 1px;
                 }
-                .ellipsis{
+                .ellipsis {
                     overflow: hidden;
                     text-overflow: ellipsis;
                     white-space: nowrap;
                 }
             }
             .right {
-                image{
-                    width: 25Px;
-                    height: 25Px;
-                    margin-top:3Px;
+                image {
+                    width: 25px;
+                    height: 25px;
+                    margin-top: 3px;
                 }
             }
         }

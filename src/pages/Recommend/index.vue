@@ -154,9 +154,9 @@ export default {
 </script>
 
 <style lang='scss' scoped>
-/deep/ .van-tab--active {
-    color: #dd001b;
-}
+// /deep/ .van-tab--active {
+//     color: #dd001b;
+// }
 image {
     width: 100%;
     height: 200px;

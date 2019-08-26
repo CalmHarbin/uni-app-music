@@ -1,38 +1,57 @@
 <template>
     <view class="content">
-        <van-tabs :active="current" bind:click="" color="#dd001b">
+        <van-tabs :active="current" color="#dd001b">
             <van-tab title="推荐">
                 <Recommend />
             </van-tab>
             <van-tab title="热歌榜">
                 <Hot />
             </van-tab>
-            <van-tab title="搜索">内容 3</van-tab>
+            <van-tab title="搜索">
+                <Search />
+            </van-tab>
         </van-tabs>
+        <SongFooter ref="SongFooter" />
     </view>
 </template>
 
 <script>
-import Recommend from '../Recommend/index'
-import Hot from '../Hot/index'
+import Recommend from "../Recommend/index";
+import Hot from "../Hot/index";
+import Search from "../Search/index";
+import SongFooter from "../../components/SongFooter";
 
 export default {
-    components: { Recommend, Hot },
+    components: { Recommend, Hot, Search, SongFooter },
     data() {
         return {
-            title: "Hello",
             current: 0
         };
     },
-    onLoad() {
-        console.log(111)
+    created() {
+        this.$store.state.audio.onCanplay(() => {
+            //更新底部播放的状态
+            this.$refs.SongFooter.update();
+        });
+        //   监听播放和暂停事件
+        this.$store.state.audio.onPlay(() => {
+            this.$refs.SongFooter.onPlay();
+        });
+        this.$store.state.audio.onPause(() => {
+            this.$refs.SongFooter.onPause();
+        });
     },
     methods: {}
-}
+};
 </script>
 
 <style lang='scss' scoped>
-/deep/ .van-tab--active{
+/deep/ .van-tab--active {
     color: #dd001b;
+}
+// 修改Search组件中的搜索框背景色, 在Search组件中修改无效,这里有效
+/deep/ .van-cell {
+    background-color: #f5f5f5;
+    border-radius: 50px;
 }
 </style>

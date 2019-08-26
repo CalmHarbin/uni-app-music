@@ -1,20 +1,29 @@
 {
-	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
-		{
-			"path": "pages/index/index",
-			"style": {
-                "navigationBarTitleText": "音乐达人范",
+    "pages": [
+        //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+        {
+            "path": "pages/index/index",
+            "style": {
                 "usingComponents": {
                     "van-tab": "/wxcomponents/vant-weapp/tab/index",
                     "van-tabs": "/wxcomponents/vant-weapp/tabs/index"
                 }
-			}
-		}
-	],
-	"globalStyle": {
-		"navigationBarTextStyle": "white",
-		"navigationBarTitleText": "音乐达人范",
-		"navigationBarBackgroundColor": "#31c27c",
-		"backgroundColor": "#F8F8F8"
-	}
+            }
+        },
+        {
+            "path": "pages/PersonalizedList/index",
+            "style": {
+                "usingComponents": {
+                    "van-icon": "/wxcomponents/vant-weapp/icon/index"
+                }
+            }
+        }
+    ],
+    "globalStyle": {
+        "navigationBarTextStyle": "white",
+        "navigationBarTitleText": "音乐达人范",
+        "navigationBarBackgroundColor": "#31c27c",
+        "backgroundColor": "#F8F8F8"
+    },
+    "requiredBackgroundModes": ["audio"]
 }
