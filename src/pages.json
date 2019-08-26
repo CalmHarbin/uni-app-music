@@ -17,6 +17,15 @@
                     "van-icon": "/wxcomponents/vant-weapp/icon/index"
                 }
             }
+        },
+        {
+            "path": "pages/SongList/index",
+            "style": {
+                "navigationBarTitleText": "歌单"
+            }
+        },
+        {
+            "path": "pages/Song/index"
         }
     ],
     "globalStyle": {
@@ -24,6 +33,5 @@
         "navigationBarTitleText": "音乐达人范",
         "navigationBarBackgroundColor": "#31c27c",
         "backgroundColor": "#F8F8F8"
-    },
-    "requiredBackgroundModes": ["audio"]
+    }
 }

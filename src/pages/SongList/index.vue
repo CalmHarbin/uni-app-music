@@ -1,17 +1,21 @@
 <template>
-    <View class="Hot SongList">
-        <View class="coverBox">
-            <View class="cover" />
-            <Text class="time"
-                >更新日期
-                {{ $GetDateTime(new Date(this.time), "m月d日") }}</Text
-            >
+    <View class="SongList">
+        <View class="header">
+            <Image
+                :src="require('../../static/play-cell.png')"
+                @click="playAll"
+            />
+            <View class="left" @click="playAll">
+                播放全部<Text>(共{{ SongList.length }}首)</Text>
+            </View>
+            <View class="right" @click="Collection">
+                + 收藏({{ subscribedCount }})
+            </View>
         </View>
-
         <View
             class="item"
+            v-for="(item, index) in SongList"
             :key="index"
-            v-for="(item, index) in hotList"
             @click="go(item)"
         >
             <View class="left">{{ index + 1 }}</View>
@@ -25,7 +29,7 @@
                                     return i.name;
                                 })
                                 .join(" / ") +
-                                " - " +
+                                " -" +
                                 item.al.name
                         }}
                     </Text>
@@ -34,7 +38,7 @@
                     <Image
                         :src="
                             !$store.state.audio.paused &&
-                            item.id == $store.state.audio.id
+                            item.id === $store.state.audio.id
                                 ? require('../../static/pause-item.png')
                                 : require('../../static/play-list.png')
                         "
@@ -42,30 +46,45 @@
                 </View>
             </View>
         </View>
+        <SongFooter ref="SongFooter" />
     </View>
 </template>
 
 <script>
-import { getHot } from "../../api/index";
-
+import { getSongList } from "../../api/index";
+import SongFooter from "../../components/SongFooter";
 export default {
+    components: { SongFooter },
     data() {
         return {
-            hotList: [], //歌
-            time: new Date().getTime()
+            subscribedCount: 0, //收藏数量
+            SongList: [] //展示列表
         };
     },
-    created() {
-        getHot({ idx: 1 }).then(res => {
+    onLoad(params) {
+        uni.showLoading({
+            title: "loading"
+        });
+        getSongList({ id: params.id }).then(res => {
             for (let item of res.playlist.tracks) {
-                this.hotList.push({
+                this.SongList.push({
                     al: { picUrl: item.al.picUrl, name: item.al.name },
                     ar: item.ar,
                     name: item.name,
                     id: item.id
                 });
             }
-            this.time = res.playlist.updateTime;
+            this.subscribedCount = res.playlist.subscribedCount;
+            uni.hideLoading();
+        });
+    },
+    mounted() {
+        //   监听播放和暂停事件
+        this.$store.state.audio.onPlay(() => {
+            this.$refs.SongFooter.onPlay();
+        });
+        this.$store.state.audio.onPause(() => {
+            this.$refs.SongFooter.onPause();
         });
     },
     methods: {
@@ -130,56 +149,106 @@ export default {
             this.$store.dispatch("update", { item });
             //更新歌词
             this.$store.dispatch("updateLyric", { id: item.id });
-        },
 
+            audio.onCanplay(() => {
+                //更新底部播放的状态
+                this.$refs.SongFooter.update();
+            });
+        },
+        /**
+         * 播放全部
+         * @method playAll
+         * @return {undefined}
+         */
+        playAll() {
+            if (!this.SongList.length) return;
+            let audio = this.$store.state.audio;
+
+            //切换为顺序播放
+            this.$store.dispatch("setGlobalData", { key: "mode", value: 2 });
+            //更新播放列表
+            this.$store.dispatch("setGlobalData", {
+                key: "songList",
+                value: this.state.SongList
+            });
+            this.$store.dispatch("setGlobalData", {
+                key: "song",
+                value: this.state.SongList[0]
+            });
+            //播放第一首歌
+            //更新播放为当前歌曲
+            this.$store.dispatch("update", { item: this.state.SongList[0] });
+            //更新歌词
+            this.$store.dispatch("updateLyric", {
+                id: this.state.SongList[0].id
+            });
+
+            audio.onCanplay(() => {
+                //更新底部播放的状态
+                this.$refs.SongFooter.update();
+            });
+        },
         /**
          * 将歌曲插入到正在播放歌曲的后面
          * @method playAll
          * @return {undefined}
          */
-        insert_list() {
-            // 将热歌全部添加到播放列表里面
-            this.$store.dispatch("setGlobalData", {
-                key: "songList",
-                value: this.hotList
+        insert_list(song) {
+            // 更新播放列表相关-start
+            //获取播放列表
+            let songList = this.$store.state.songList;
+
+            //如果此时播放列表是空的,则全部添加到播放列表中
+            if (songList.length === 0) {
+                // 将热歌全部添加到播放列表里面
+                this.$store.dispatch("setGlobalData", {
+                    key: "songList",
+                    value: this.SongList
+                });
+                //播放模式切换为顺序播放
+                this.$store.dispatch("setGlobalData", {
+                    key: "mode",
+                    value: 2
+                });
+                return;
+            }
+
+            //先判断点击的歌曲是否在播放列表里面
+            let isExist = false;
+            songList.forEach(song_item => {
+                if (song_item.id === song.id) {
+                    isExist = true;
+                }
             });
-            //播放模式切换为顺序播放
-            this.$store.dispatch("setGlobalData", { key: "mode", value: 2 });
+            //将点击的歌曲插入到正在播放歌曲的后面
+            if (!isExist) {
+                let idx = 0; //默认当前播放的歌曲为0
+                songList.forEach((song_item, index) => {
+                    if (song_item.id === this.$store.state.audio.id) {
+                        idx = index;
+                    }
+                });
+                songList.splice(idx + 1, 0, song);
+            }
+            // 更新播放列表相关-end
+        },
+        /**
+         * 收藏全部
+         * @method Collection
+         * @return {undefined}
+         */
+        Collection() {
+            uni.showToast({
+                title: "暂不支持收藏",
+                icon: "none",
+                duration: 1000
+            });
         }
     }
 };
 </script>
 
 <style lang='scss' scoped>
-.coverBox {
-    position: relative;
-    background: url(//s3.music.126.net/mobile-new/img/hot_music_bg_2x.jpg?f01a252…=)
-        no-repeat;
-    background-size: cover;
-    height: 146px;
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
-    padding-left: 15px;
-
-    .cover {
-        background: url(//s3.music.126.net/mobile-new/img/index_icon_2x.png?5207a28…=)
-            no-repeat;
-        background-size: 166px 97px;
-        width: 142px;
-        height: 67px;
-        background-position: -24px -30px;
-    }
-
-    .time {
-        color: hsla(0, 0%, 100%, 0.8);
-        font-size: 12px;
-        transform: scale(0.91);
-        transform-origin: left top;
-        margin-top: 10px;
-    }
-}
-
 .SongList {
     .header {
         display: flex;
@@ -238,7 +307,7 @@ export default {
                 flex-direction: column;
                 flex: 0 0 90%;
                 overflow: hidden;
-                text {
+                Text {
                     font-size: 24rpx;
                     color: #888;
                     margin-top: 1px;
