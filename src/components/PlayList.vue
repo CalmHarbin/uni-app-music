@@ -7,16 +7,12 @@
                 class="scrollview"
                 scrollY
                 scrollTop="0"
-                :scrollIntoView="'songid' + $store.state.song.id"
+                :scrollIntoView="'songid' + song.id"
             >
                 <View
-                    v-for="(item, index) in $store.state.songList"
+                    v-for="(item, index) in songList"
                     @click="play(item)"
-                    :class="
-                        'item ' + $store.state.song.id === item.id
-                            ? 'active'
-                            : ''
-                    "
+                    :class="['item', song.id === item.id ? 'active' : '']"
                     :id="'songid' + item.id"
                     :key="index"
                 >
@@ -41,6 +37,7 @@
 </template>
 
 <script>
+import { mapState } from "vuex";
 export default {
     props: {
         show: Boolean
@@ -49,6 +46,9 @@ export default {
         return {
             scrollTop: 0
         };
+    },
+    computed: {
+        ...mapState(["song", "songList"])
     },
     methods: {
         /**

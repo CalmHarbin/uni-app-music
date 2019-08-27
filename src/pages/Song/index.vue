@@ -4,9 +4,8 @@
             class="bg"
             :style="
                 'background:url(' +
-                    ($store.state.song.al.picUrl
-                        ? $store.state.song.al.picUrl +
-                          '?imageView&thumbnail=480x0'
+                    (song.al.picUrl
+                        ? song.al.picUrl + '?imageView&thumbnail=480x0'
                         : require('../../static/defaultMusicAvatar.jpg')) +
                     ')'
             "
@@ -14,17 +13,16 @@
         <View class="bgBlank" />
 
         <View class="info">
-            <Text>{{ $store.state.song.name }}</Text>
-            <View>{{ $store.state.audio._singer }}</View>
+            <Text>{{ song.name }}</Text>
+            <View>{{ audio__singer }}</View>
         </View>
         <View class="img-box">
             <Image
-                :class="'rotate ' + paused ? 'paused' : ''"
+                :class="['rotate', audio_paused ? 'paused' : '']"
                 mode="widthFix"
                 :src="
-                    $store.state.song.al.picUrl
-                        ? $store.state.song.al.picUrl +
-                          '?imageView&thumbnail=480x0'
+                    song.al.picUrl
+                        ? song.al.picUrl + '?imageView&thumbnail=480x0'
                         : require('../../static/defaultMusicAvatar.jpg')
                 "
             />
@@ -35,10 +33,10 @@
                 <View
                     class="content"
                     :style="style"
-                    v-if="$store.state.audio && $store.state.audio.LyricList"
+                    v-if="audio && audio_LyricList"
                 >
                     <View
-                        v-for="(item, index) in $store.state.audio.LyricList"
+                        v-for="(item, index) in audio_LyricList"
                         :class="
                             index === LyricIndex
                                 ? 'active Lyric_item'
@@ -68,26 +66,32 @@
                 />
                 <Text>
                     {{
-                        $store.state.audio
-                            ? $store.state.audio.duration > 60 * 60
+                        audio
+                            ? audio_duration > 60 * 60
                                 ? $GetDateTime(
-                                      new Date(
-                                          $store.state.audio.duration * 1000
-                                      ),
+                                      new Date(audio_duration * 1000),
                                       "h:i:s"
                                   )
                                 : $GetDateTime(
-                                      new Date(
-                                          $store.state.audio.duration * 1000
-                                      ),
+                                      new Date(audio_duration * 1000),
                                       "i:s"
                                   )
-                            : ""
+                            : "00:00"
                     }}
                 </Text>
             </View>
             <View class="btn-box">
-                <Image class="switch" @click="Switch" :src="modeImg" />
+                <Image
+                    class="switch"
+                    @click="Switch"
+                    :src="
+                        mode === 1
+                            ? require('../../static/play_icn_one.png')
+                            : mode === 2
+                            ? require('../../static/play_icn_loop.png')
+                            : require('../../static/play_icn_shuffle.png')
+                    "
+                />
                 <Image
                     :src="require('../../static/play_btn_prev.png')"
                     @click="prev"
@@ -97,7 +101,7 @@
                 <Image
                     @click="turnState"
                     :src="
-                        $store.state.audio && $store.state.audio.paused
+                        audio_paused
                             ? require('../../static/play_btn_play.png')
                             : require('../../static/play_btn_pause.png')
                     "
@@ -120,15 +124,23 @@
 </template>
 
 <script>
+import PlayList from "../../components/PlayList";
+import { mapState } from "vuex";
+
 let timer = null;
 let isGtTime = null; //是否超过1s, 超过一秒未播放则显示loading
 let change = false; //是不是切换歌曲了
 export default {
+    components: { PlayList },
     data() {
         return {
             sliderValue: 0, //进度条当前位置,0~100
             show: false, //控制播放列表是否显示
-            time: 0
+            time: 0,
+            audio__singer: null,
+            audio_LyricList: null,
+            audio_duration: null,
+            audio_paused: null
         };
     },
     created() {
@@ -162,26 +174,28 @@ export default {
         this.time = audio.currentTime;
         this.sliderValue =
             (100 * (audio.currentTime + 1)) / this.$store.state.audio.duration;
+
+        this.updateStore();
     },
     mounted() {
+        this.$store.state.audio.onCanplay(() => {
+            console.log("歌曲准备完成,可以播放了");
+            if (!this.$store.state.audio.paused) this.setTime();
+            else if (change) this.setTime();
+            this.updateStore();
+        });
         //监听播放和暂停事件
         this.$store.state.audio.onPlay(() => {
             //播放时间继续
             this.setTime();
+            this.updateStore();
         });
         this.$store.state.audio.onPause(() => {
             //停止播放时间
             clearInterval(timer);
+            this.updateStore();
         });
-    },
-    update() {
-        let audio = this.$store.state.audio;
-        audio.onCanplay(() => {
-            console.log("歌曲准备完成,可以播放了");
-            if (!audio.paused) this.setTime();
-            else if (change) this.setTime();
-        });
-        audio.onWaiting(() => {
+        this.$store.state.audio.onWaiting(() => {
             isGtTime = setTimeout(() => {
                 uni.showLoading({
                     title: "loading"
@@ -189,7 +203,21 @@ export default {
             }, 2000);
         });
     },
+    // update() {
+    //     let audio = this.$store.state.audio;
+
+    // },
+    computed: {
+        ...mapState(["song", "mode", "audio"])
+    },
     methods: {
+        updateStore() {
+            console.log(this.$store.state.audio.paused);
+            this.audio__singer = this.$store.state.audio._singer;
+            this.audio_paused = this.$store.state.audio.paused;
+            this.audio_LyricList = this.$store.state.audio.LyricList;
+            this.audio_duration = this.$store.state.audio.duration;
+        },
         /**
          * 定时器,更新时间和进度条
          * @method turnState

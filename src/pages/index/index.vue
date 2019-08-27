@@ -5,7 +5,7 @@
                 <Recommend />
             </van-tab>
             <van-tab title="热歌榜">
-                <Hot />
+                <Hot ref="Hot" />
             </van-tab>
             <van-tab title="搜索">
                 <Search />
@@ -32,13 +32,20 @@ export default {
         this.$store.state.audio.onCanplay(() => {
             //更新底部播放的状态
             this.$refs.SongFooter.update();
+            //因为vuex不能直接在模板内更新
+            this.$refs.SongFooter.updateStore();
+            this.$refs.Hot.updateStore();
         });
         //   监听播放和暂停事件
         this.$store.state.audio.onPlay(() => {
             this.$refs.SongFooter.onPlay();
+            this.$refs.SongFooter.updateStore();
+            this.$refs.Hot.updateStore();
         });
         this.$store.state.audio.onPause(() => {
             this.$refs.SongFooter.onPause();
+            this.$refs.SongFooter.updateStore();
+            this.$refs.Hot.updateStore();
         });
     },
     methods: {}

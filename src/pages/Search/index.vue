@@ -86,7 +86,6 @@ export default {
         };
     },
     created() {
-        console.log(this.$store.state);
         searchHot().then(res => {
             for (let item of res.result.hots) {
                 this.hotList.push(item.first);

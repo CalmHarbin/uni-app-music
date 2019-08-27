@@ -1,30 +1,21 @@
 <template>
     <View
         class="SongFooter"
-        :style="
-            $store.state.song && $store.state.song.id
-                ? 'display: block'
-                : 'display: none'
-        "
+        :style="song && song.id ? 'display: block' : 'display: none'"
     >
         <View class="box">
             <Image
                 @click="go"
-                :class="
-                    'avatar ' + $store.state.audio && $store.state.audio.paused
-                        ? 'paused'
-                        : ''
-                "
+                :class="['avatar', audio_paused ? 'paused' : '']"
                 :src="
-                    $store.state.song.al.picUrl
-                        ? $store.state.song.al.picUrl +
-                          '?imageView&thumbnail=38x0'
+                    song.al.picUrl
+                        ? song.al.picUrl + '?imageView&thumbnail=38x0'
                         : require('../static/defaultMusicAvatar.jpg')
                 "
             />
             <View class="content" @click="go">
-                <View class="ellipsis">{{ $store.state.song.name }}</View>
-                <Text class="ellipsis">{{ $store.state.audio._singer }}</Text>
+                <View class="ellipsis">{{ song.name }}</View>
+                <Text class="ellipsis">{{ audio__singer }}</Text>
             </View>
             <View @click="turnState">
                 <Canvas
@@ -49,11 +40,15 @@
 import PlayList from "./PlayList";
 import pause_icon from "../static/pause_icon.png";
 import play_icon from "../static/play_icon.png";
+import { mapState } from "vuex";
+
 export default {
     components: { PlayList },
     data() {
         return {
-            show: false
+            show: false,
+            audio__singer: null,
+            audio_paused: null
         };
     },
     created() {
@@ -61,7 +56,26 @@ export default {
             this.update();
         }
     },
+    mounted() {
+        // this.$store.state.audio.onCanplay(() => {
+        //     this.updateStore();
+        // });
+        // //   监听播放和暂停事件
+        // this.$store.state.audio.onPlay(() => {
+        //     this.updateStore();
+        // });
+        // this.$store.state.audio.onPause(() => {
+        //     this.updateStore();
+        // });
+    },
+    computed: {
+        ...mapState(["song"])
+    },
     methods: {
+        updateStore() {
+            this.audio__singer = this.$store.state.audio._singer;
+            this.audio_paused = this.$store.state.audio.paused;
+        },
         /**
          * canvas改为播放状态
          * @method onPlay
@@ -134,7 +148,7 @@ export default {
          */
         go() {
             if (!this.$store.state.song.id) return;
-            Taro.navigateTo({
+            uni.navigateTo({
                 url: `/pages/Song/index?id=${this.$store.state.song.id}`
             });
         },

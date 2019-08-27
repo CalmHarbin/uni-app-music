@@ -37,8 +37,7 @@
                 <View class="right" @click.stop="play(item)">
                     <Image
                         :src="
-                            !$store.state.audio.paused &&
-                            item.id === $store.state.audio.id
+                            !audio_paused && item.id === audio_id
                                 ? require('../../static/pause-item.png')
                                 : require('../../static/play-list.png')
                         "
@@ -58,7 +57,9 @@ export default {
     data() {
         return {
             subscribedCount: 0, //收藏数量
-            SongList: [] //展示列表
+            SongList: [], //展示列表
+            audio_id: null,
+            audio_paused: null
         };
     },
     onLoad(params) {
@@ -79,15 +80,30 @@ export default {
         });
     },
     mounted() {
+        this.$store.state.audio.onCanplay(() => {
+            //更新底部播放的状态
+            this.$refs.SongFooter.update();
+            //因为vuex不能直接在模板内更新
+            this.updateStore();
+            this.$refs.SongFooter.updateStore();
+        });
         //   监听播放和暂停事件
         this.$store.state.audio.onPlay(() => {
             this.$refs.SongFooter.onPlay();
+            this.updateStore();
+            this.$refs.SongFooter.updateStore();
         });
         this.$store.state.audio.onPause(() => {
             this.$refs.SongFooter.onPause();
+            this.updateStore();
+            this.$refs.SongFooter.updateStore();
         });
     },
     methods: {
+        updateStore() {
+            this.audio_id = this.$store.state.audio.id;
+            this.audio_paused = this.$store.state.audio.paused;
+        },
         /**
          * 跳转到歌曲详情页
          * @method go

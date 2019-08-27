@@ -7,7 +7,6 @@
                 {{ $GetDateTime(new Date(this.time), "m月d日") }}</Text
             >
         </View>
-
         <View
             class="item"
             :key="index"
@@ -33,8 +32,7 @@
                 <View class="right" @click.stop="play(item)">
                     <Image
                         :src="
-                            !$store.state.audio.paused &&
-                            item.id == $store.state.audio.id
+                            !audio_paused && item.id == audio_id
                                 ? require('../../static/pause-item.png')
                                 : require('../../static/play-list.png')
                         "
@@ -52,7 +50,9 @@ export default {
     data() {
         return {
             hotList: [], //歌
-            time: new Date().getTime()
+            time: new Date().getTime(),
+            audio_paused: null,
+            audio_id: null
         };
     },
     created() {
@@ -69,6 +69,10 @@ export default {
         });
     },
     methods: {
+        updateStore() {
+            this.audio_id = this.$store.state.audio.id;
+            this.audio_paused = this.$store.state.audio.paused;
+        },
         /**
          * 跳转到歌曲详情页
          * @method go
@@ -116,6 +120,7 @@ export default {
                     key: "audio",
                     value: audio
                 });
+                this.$forceUpdate();
                 return;
             }
             //更新歌曲的全局变量
@@ -130,6 +135,11 @@ export default {
             this.$store.dispatch("update", { item });
             //更新歌词
             this.$store.dispatch("updateLyric", { id: item.id });
+            this.$store.dispatch("setGlobalData", {
+                key: "audio",
+                value: audio
+            });
+            this.$forceUpdate();
         },
 
         /**
