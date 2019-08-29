@@ -17,7 +17,8 @@ const actions = {
                     }
                 })
             commit(UPDATELYRIC, {
-                LyricList: LyricList.filter(item => item.Text) //过滤掉空歌词
+                LyricList: LyricList.filter(item => item.Text), //过滤掉空歌词
+                callback: payload.callback
             })
         })
     },
@@ -60,7 +61,7 @@ const actions = {
         commit(PREVSONG, payload)
     },
     next({ commit }, payload) {
-        commit(PREVSONG, payload)
+        commit(NEXTSONG, payload)
     }
 }
 

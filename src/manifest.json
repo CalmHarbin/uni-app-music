@@ -16,13 +16,13 @@
         },
         "modules": {
             /* 模块配置 */
-
         },
         "distribute": {
             /* 应用发布信息 */
             "android": {
                 /* android打包配置 */
-                "permissions": ["<uses-permission android:name=\"android.permission.CHANGE_NETWORK_STATE\"/>",
+                "permissions": [
+                    "<uses-permission android:name=\"android.permission.CHANGE_NETWORK_STATE\"/>",
                     "<uses-permission android:name=\"android.permission.MOUNT_UNMOUNT_FILESYSTEMS\"/>",
                     "<uses-permission android:name=\"android.permission.READ_CONTACTS\"/>",
                     "<uses-permission android:name=\"android.permission.VIBRATE\"/>",
@@ -48,21 +48,18 @@
             },
             "ios": {
                 /* ios打包配置 */
-
             },
             "sdkConfigs": {
                 /* SDK配置 */
-
             }
         }
     },
     "quickapp": {
         /* 快应用特有相关 */
-
     },
     "mp-weixin": {
         /* 微信小程序特有相关 */
-        "appid": "",
+        "appid": "wxd7c80df0f5faa1a3",
         "setting": {
             "urlCheck": false
         },

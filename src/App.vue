@@ -78,6 +78,10 @@ export default {
 
 <style>
 /*每个页面公共css */
+View,
+Text {
+    font-size: 14px;
+}
 image {
     max-width: 100%;
 }

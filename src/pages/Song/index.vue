@@ -3,11 +3,11 @@
         <View
             class="bg"
             :style="
-                'background:url(' +
-                    (song.al.picUrl
-                        ? song.al.picUrl + '?imageView&thumbnail=480x0'
-                        : require('../../static/defaultMusicAvatar.jpg')) +
-                    ')'
+                song.al.picUrl
+                    ? 'background:url(' +
+                      song.al.picUrl +
+                      '?imageView&thumbnail=480x0)'
+                    : require('../../static/defaultMusicAvatar.jpg')
             "
         />
         <View class="bgBlank" />
@@ -137,6 +137,8 @@ export default {
             sliderValue: 0, //进度条当前位置,0~100
             show: false, //控制播放列表是否显示
             time: 0,
+            style: "bottom: 0px",
+            LyricIndex: 0,
             audio__singer: null,
             audio_LyricList: null,
             audio_duration: null,
@@ -155,9 +157,21 @@ export default {
                 value: songData
             });
             //更新播放为当前歌曲
-            this.$store.dispatch("update", { item: songData });
+            this.$store.dispatch("update", {
+                item: songData
+            });
             //更新歌词
-            this.$store.dispatch("updateLyric", { id: songData.id });
+            this.$store.dispatch("updateLyric", {
+                id: songData.id,
+                callback: () => {
+                    this.$store.state.audio.onCanplay(() => {
+                        console.log("歌曲准备完成,可以播放了");
+                        if (!this.$store.state.audio.paused) this.setTime();
+                        else if (change) this.setTime();
+                        this.updateStore();
+                    });
+                }
+            });
             //更新title
             uni.setNavigationBarTitle({
                 title: songData.name
@@ -203,10 +217,6 @@ export default {
             }, 2000);
         });
     },
-    // update() {
-    //     let audio = this.$store.state.audio;
-
-    // },
     computed: {
         ...mapState(["song", "mode", "audio"])
     },
@@ -243,10 +253,29 @@ export default {
                 this.time = this.time + 1;
                 this.sliderValue =
                     (100 * (this.time + 1)) / this.$store.state.audio.duration;
+                if (
+                    this.$store.state.audio &&
+                    this.$store.state.audio.LyricList
+                ) {
+                    this.$store.state.audio.LyricList.map((item, index) => {
+                        if (this.time > item.time) {
+                            this.style = `bottom:${(index - 1) * 28}px`;
+                            this.LyricIndex = index;
+                        }
+                    });
+                }
             }, 1000);
             this.time = time;
             this.sliderValue =
                 (100 * (this.time + 1)) / this.$store.state.audio.duration;
+            if (this.$store.state.audio && this.$store.state.audio.LyricList) {
+                this.$store.state.audio.LyricList.map((item, index) => {
+                    if (this.time > item.time) {
+                        this.style = `bottom:${(index - 1) * 28}px`;
+                        this.LyricIndex = index;
+                    }
+                });
+            }
         },
         /*
          * 函数防抖
@@ -286,12 +315,12 @@ export default {
         /**
          * 滑动进度条控制播放位置
          * @method sliderChange
-         * @param {Number} position.value 当前位置 0~100
+         * @param {Number} e.detail.value 当前位置 0~100
          * @return {undefined}
          */
-        sliderChange(position) {
+        sliderChange(e) {
             let audio = this.$store.state.audio;
-            let currentTime = (audio.duration * position.value) / 100;
+            let currentTime = (audio.duration * e.detail.value) / 100;
 
             audio.seek(currentTime);
             clearInterval(timer);
@@ -498,5 +527,6 @@ export default {
 .footer {
     height: 213px;
     box-sizing: border-box;
+    overflow: hidden;
 }
 </style>

@@ -5,7 +5,7 @@ const mutations = {
         //更新歌词
         state.audio.LyricList = payload.LyricList
         console.log('更新歌词', payload.LyricList)
-        // state.audio = audio
+        payload.callback && payload.callback()
     },
     [UPDATE](state, payload) {
         let { src, coverImgUrl, singer, title, id, _name, _singer, _picUrl, song } = payload
@@ -51,6 +51,7 @@ const mutations = {
                         icon: 'none',
                         duration: 1000
                     })
+                    return
                 }
                 payload.callback(state.songList[index + 1])
                 return

@@ -28,7 +28,7 @@ export default {
             current: 0
         };
     },
-    created() {
+    onShow() {
         this.$store.state.audio.onCanplay(() => {
             //更新底部播放的状态
             this.$refs.SongFooter.update();
@@ -47,6 +47,11 @@ export default {
             this.$refs.SongFooter.updateStore();
             this.$refs.Hot.updateStore();
         });
+        if (this.$store.state.audio.id) {
+            this.$refs.SongFooter.Draw();
+            this.$refs.SongFooter.updateStore();
+            this.$refs.Hot.updateStore();
+        }
     },
     methods: {}
 };

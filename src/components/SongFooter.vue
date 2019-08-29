@@ -18,12 +18,7 @@
                 <Text class="ellipsis">{{ audio__singer }}</Text>
             </View>
             <View @click="turnState">
-                <Canvas
-                    width="30Px"
-                    height="30Px"
-                    ref="canvas"
-                    canvasId="canvas"
-                />
+                <canvas ref="canvas" canvas-id="canvas"></canvas>
             </View>
             <Image
                 class="list"
@@ -38,8 +33,8 @@
 
 <script>
 import PlayList from "./PlayList";
-import pause_icon from "../static/pause_icon.png";
-import play_icon from "../static/play_icon.png";
+// import pause_icon from "../static/pause_icon.png";
+// import play_icon from "../static/play_icon.png";
 import { mapState } from "vuex";
 
 export default {
@@ -56,17 +51,9 @@ export default {
             this.update();
         }
     },
-    mounted() {
-        // this.$store.state.audio.onCanplay(() => {
-        //     this.updateStore();
-        // });
-        // //   监听播放和暂停事件
-        // this.$store.state.audio.onPlay(() => {
-        //     this.updateStore();
-        // });
-        // this.$store.state.audio.onPause(() => {
-        //     this.updateStore();
-        // });
+    onShow() {
+        this.updateStore();
+        this.Draw();
     },
     computed: {
         ...mapState(["song"])
@@ -108,12 +95,11 @@ export default {
          * @return {undefined}
          */
         Draw() {
+            if (!this.$store.state.audio.id) return;
+
             let audio = this.$store.state.audio;
             let progress = audio.currentTime / audio.duration;
-            const context = uni.createCanvasContext(
-                "canvas",
-                this.$refs.canvas
-            );
+            const context = uni.createCanvasContext("canvas", this);
 
             //画圆
             context.setStrokeStyle("#31c27c");
@@ -135,9 +121,21 @@ export default {
             context.stroke();
 
             if (audio.paused) {
-                context.drawImage(play_icon, 9, 9, 13, 13);
+                context.drawImage(
+                    require("../static/play_icon.png"),
+                    9,
+                    9,
+                    13,
+                    13
+                );
             } else {
-                context.drawImage(pause_icon, 7, 7, 16, 16);
+                context.drawImage(
+                    require("../static/pause_icon.png"),
+                    7,
+                    7,
+                    16,
+                    16
+                );
             }
             context.draw();
         },
@@ -213,10 +211,11 @@ export default {
         z-index: 1000;
         width: 100%;
         display: flex;
-        padding: 0 15px 0 10px;
+        padding: 0 10px 0 10px;
         background-color: #fff;
         align-items: center;
         border-top: 1px solid #eee;
+        box-sizing: border-box;
         .avatar {
             width: 38px;
             height: 38px;
@@ -232,7 +231,8 @@ export default {
         .content {
             display: flex;
             flex-direction: column;
-            width: 61%;
+            // width: 61%;
+            flex: 1;
             overflow: hidden;
             font-size: 12px;
             color: #000;
@@ -245,7 +245,7 @@ export default {
         .list {
             width: 30px;
             height: 30px;
-            margin-left: 15px;
+            margin-left: 10px;
         }
         .paused {
             animation-play-state: paused;
