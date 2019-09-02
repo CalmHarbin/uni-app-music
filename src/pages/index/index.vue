@@ -61,9 +61,4 @@ export default {
 /deep/ .van-tab--active {
     color: #dd001b;
 }
-// 修改Search组件中的搜索框背景色, 在Search组件中修改无效,这里有效
-/deep/ .van-cell {
-    background-color: #f5f5f5;
-    border-radius: 50px;
-}
 </style>

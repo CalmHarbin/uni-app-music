@@ -1,18 +1,30 @@
 <template>
     <View class="Search">
-        <van-search
-            :value="search"
-            :use-action-slot="true"
-            shape="round"
-            background="#fff"
-            custom-class="aaaaaaaaaa"
-            @change="onChange"
-            @cancel="onConfirm"
-            @search="onConfirm"
-            @clear="onChange"
-        >
-            <view slot="action" class="btn" @click="onConfirm">搜索</view>
-        </van-search>
+        <View class="searchBox">
+            <View class="search_input">
+                <van-icon
+                    custom-class="search_icon"
+                    size="16px"
+                    name="search"
+                />
+                <Input
+                    type="text"
+                    v-model="search"
+                    confirm-type="search"
+                    @confirm="onConfirm"
+                    @focus="show_close = true"
+                    @blur="show_close = false"
+                />
+                <view
+                    class="search_close"
+                    @click="reset"
+                    :style="{ opacity: show_close ? 1 : 0 }"
+                >
+                    <van-icon size="12px" name="cross" />
+                </view>
+            </View>
+            <view class="btn" @click="onConfirm">搜索</view>
+        </View>
 
         <View class="tagBox" v-if="!SongList.length">
             <View class="hot">热门搜索</View>
@@ -70,11 +82,11 @@
 
 <script>
 import { searchHot, search } from "../../api/index";
-import VanSearch from "../../wxcomponents/vant-weapp/search/index";
 import VanTag from "../../wxcomponents/vant-weapp/tag/index";
+import VanIcon from "../../wxcomponents/vant-weapp/icon/index";
 
 export default {
-    components: { VanSearch, VanTag },
+    components: { VanTag, VanIcon },
     data() {
         return {
             search: "",
@@ -82,7 +94,8 @@ export default {
             page: 1, //当前页
             total: 0, //总数
             SongList: [],
-            hotList: []
+            hotList: [],
+            show_close: false //是否显示搜索框的叉叉
         };
     },
     created() {
@@ -92,26 +105,21 @@ export default {
             }
         });
     },
+    mounted() {
+        console.log(this);
+    },
     methods: {
-        /**
-         * 输入内容改变
-         * @method onChange
-         * @return {undefined}
-         */
-        onChange(value) {
-            if (!value) {
-                this.SongList = [];
-                this.search = value;
-                return;
-            }
-            this.search = value;
+        reset() {
+            this.search = "";
+            this.SongList = [];
         },
         /**
          * 搜索
          * @method onConfirm
          * @return {undefined}
          */
-        onConfirm() {
+        onConfirm(event) {
+            console.log(this.search);
             if (!this.search) {
                 this.SongList = [];
                 return;
@@ -274,25 +282,13 @@ export default {
 </script>
 
 <style lang='scss' scoped>
-// /deep/ #shadow-root .field-index--van-field {
-//     background-color: #f5f5f5;
-//     border-radius: 100rpx;
-// }
-/deep/ .van-cell {
-    background-color: #f5f5f5;
-}
 .Search .btn {
     background-color: #6180e9;
     color: #fff;
     border-radius: 6px;
     padding: 0 10px;
     height: 30px;
-}
-/deep/ .aaaaaaaaaa {
-    border-bottom: 1px solid #f5f5f5;
-}
-/deep/ .aaaaaaaaaa .van-cell {
-    background-color: #f5f5f5;
+    line-height: 30px;
 }
 
 .Search {
@@ -360,6 +356,46 @@ export default {
         font-size: 28rpx;
         height: 60rpx;
         line-height: 58rpx;
+    }
+    /deep/ .search_icon {
+        position: absolute;
+        left: 7px;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+    .search_close {
+        z-index: 10;
+        position: absolute;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 30px;
+        height: 30px;
+        right: 0px;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+    .searchBox {
+        position: relative;
+        display: flex;
+        align-items: center;
+        height: 45px;
+        padding: 8px 15px;
+        box-sizing: border-box;
+        border-bottom: 1px solid #f5f5f5;
+        .search_input {
+            position: relative;
+            flex: 1;
+            background-color: #f5f5f5;
+            border-radius: 50px;
+            height: 100%;
+            margin-right: 10px;
+        }
+        input {
+            height: 100%;
+            padding: 0 25px 0 25px;
+            font-size: 14px;
+        }
     }
 }
 </style>
